@@ -10,34 +10,64 @@ dotenv.load_dotenv()
 token = os.getenv("ACCESS_TOKEN")
 
 bot = commands.Bot(command_prefix="$",
- description="O DJ millionery está aqui para agitar seu servidor e oferecer experiências incríveis que só um rei do camarote milionario pode oferecer!", 
+ description="O DJ millionery esta aqui para agitar seu servidor e oferecer experiencias incriveis que so um rei do camarote milionario pode oferecer!", 
 case_insensitive=True)
 
-
+bot.embed_color = discord.Colour.purple()
+bot.footer= "Investe comigo"
+bot.footer_image= "https://png.pngtree.com/png-clipart/20190612/original/pngtree-a-wad-of-dollar-bills-png-image_3326543.jpg"
 @bot.event
 
 async def on_ready():
     print("I'm connected to Discord")
 
-    game = discord.Game(name="!milhões")
+    game = discord.Game(name="!milhoes")
     await bot.change_presence(activity=game)
 
     embed= discord.Embed(
         title=f"{bot.user.name} Online!",
-        color= discord.Color.purple,
+        color= bot.embed_color,
         timestamp= datetime.datetime.now(datetime.timezone.utc)
         )
     
     embed.set_footer(
-        text="Investe comigo",
-
-        icon_url="https://image.flaticon.com/icons/svg/409/409065.svg"
+        text=bot.footer,
+        icon_url=bot.footer_image
     )
 
-    channel = bot.get_channel(670030020621762610)
-    await channel.send(embed=embed)
+    bot.log_channel = bot.get_channel(670030020621762610)
+    await bot.log_channel.send(embed=embed)
     print(f"Message sent on Discord channel. My ID is {bot.user.id}")
 
+@bot.command(
+    name="restart",
+    aliases=["r"],
+    help="Restarts the bot"
+) 
+
+async def restart(ctx):
+
+    embed = discord.Embed(
+        title=f"{bot.user.name} Restarting!",
+        color= bot.embed_color,
+        timestamp= datetime.datetime.now(datetime.timezone.utc)
+    )
+    embed.set_author(
+        name=ctx.author.name,
+        icon_url=ctx.author.avatar_url
+
+    )
+    embed.set_footer(
+
+        text=bot.footer,
+        icon_url=bot.footer_image
+    )
+
+    await bot.log_channel.send(embed=embed)
+
+    await ctx.message.add_reaction('☑️')
+
+    await bot.close()
 
 bot.run(token, bot=True, reconnect=True)
 
