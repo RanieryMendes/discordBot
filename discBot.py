@@ -186,7 +186,7 @@ async def ronaldo(ctx):
     photoN = discord.File("./images/neymar.jpeg")
     photoM = discord.File("./images/merkel.jpeg")
     photoP = discord.File("./images/alexandrePato.jpeg")
-    photoG = discord.File("./imagesGabiGol.jpeg")
+    photoG = discord.File("./images/GabiGol.jpeg")
     photoCV = discord.File("./images/cv.jpeg")
     photoAle = discord.File("./images/aleatorio.jpeg")
     
