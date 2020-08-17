@@ -3,6 +3,8 @@ import dotenv
 import os
 import datetime
 import random
+import asyncio
+import time
 
 from discord.ext import commands 
 
@@ -204,6 +206,52 @@ async def ronaldo(ctx):
     #run the command and publish a photo
     await channel.send(f'Faz o sinal do ronaldinho👍 , {ctx.author.name}', file=list_Photos[randNum])
 
+
+    #COMMAND $MIREI
+@bot.command(
+    name="mirei",
+    aliases=["m"],
+    help="It plays RanyFollen's famous, controversial phrase"
+) 
+
+async def mirei(ctx):
+
+    audio_1= 'audio.mp3'
+    audio_2= 'vaamerda_1.mp3'
+    audio_3='audio_3.mp3'
+    audio_4='audio_4.mp3'
+    audio_5='audio_5.mp3'
+
+    list_Audios= [audio_1, audio_2, audio_3, audio_4, audio_5]
+
+ #set a random number that will be the photo that will be posted on the chat channel whenever someone runs the command    
+    randNum = random.randrange(5)
+
+    channel = ctx.author.voice.channel
+   
+    player = await channel.connect()    
+    #player.play(discord.FFmpegPCMAudio('audio.mp3'))
+    player.play(discord.FFmpegPCMAudio(list_Audios[randNum]))
+
+    while player.is_playing():
+         time.sleep(5)
+    await player.disconnect()
+
+
+
+@bot.command(
+    name="retirar",
+    aliases=["s"],
+    help="It quits the bot from the voice channel"
+) 
+
+async def retirar(ctx):
+
+    channel = ctx.message.guild.voice_client
+    await channel.disconnect()
+
+
+# await voz.play(source="/Users/ranierymendes/Documents/DiscBot/audio.mpeg")
     
 #run the bot 
 bot.run(token, bot=True, reconnect=True)
