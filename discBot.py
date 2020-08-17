@@ -142,8 +142,7 @@ async def invite(ctx):
 @bot.event
 async def on_message(message):
 
-  photoSimp = discord.File("/Users/ranierymendes/Documents/DiscBot/simpson.jpg")
-
+  photoSimp = discord.File("./images/simpson.jpg")
 #especial mute for users who type the word "grimes"        
   if message.content.startswith('grimes'):  
         channel = message.channel      
@@ -159,7 +158,7 @@ async def on_message(message):
 async def on_voice_state_update(member, before, after):
 
     #pic to be sent as a welcome gesture
-    photoWelcome = discord.File("/Users/ranierymendes/Documents/DiscBot/adri.jpeg")
+    photoWelcome = discord.File("./images/adri.jpeg")
     
     name = member.nick #store the new guest's nick
 
@@ -183,13 +182,13 @@ async def on_voice_state_update(member, before, after):
 async def ronaldo(ctx):
 
     #variables with pictures of Ronaldo's hang loose
-    photoR = discord.File("/Users/ranierymendes/Documents/DiscBot/ronaldo.jpeg")
-    photoN = discord.File("/Users/ranierymendes/Documents/DiscBot/neymar.jpeg")
-    photoM = discord.File("/Users/ranierymendes/Documents/DiscBot/merkel.jpeg")
-    photoP = discord.File("/Users/ranierymendes/Documents/DiscBot/alexandrePato.jpeg")
-    photoG = discord.File("/Users/ranierymendes/Documents/DiscBot/GabiGol.jpeg")
-    photoCV = discord.File("/Users/ranierymendes/Documents/DiscBot/cv.jpeg")
-    photoAle = discord.File("/Users/ranierymendes/Documents/DiscBot/aleatorio.jpeg")
+    photoR = discord.File("./images/ronaldo.jpeg")
+    photoN = discord.File("./images/neymar.jpeg")
+    photoM = discord.File("./images/merkel.jpeg")
+    photoP = discord.File("./images/alexandrePato.jpeg")
+    photoG = discord.File("./imagesGabiGol.jpeg")
+    photoCV = discord.File("./images/cv.jpeg")
+    photoAle = discord.File("./images/aleatorio.jpeg")
     
 
     #list with all possible pics 
@@ -206,7 +205,6 @@ async def ronaldo(ctx):
     await channel.send(f'Faz o sinal do ronaldinho👍 , {ctx.author.name}', file=list_Photos[randNum])
 
     
-
 #run the bot 
 bot.run(token, bot=True, reconnect=True)
 
