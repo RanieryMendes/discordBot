@@ -5,7 +5,9 @@ import datetime
 import random
 import asyncio
 import time
-
+import youtube_dl
+from discord.utils import get
+from youtube_dl import YoutubeDL
 from discord.ext import commands 
 
 dotenv.load_dotenv()
@@ -216,11 +218,11 @@ async def ronaldo(ctx):
 
 async def mirei(ctx):
 
-    audio_1= 'audio.mp3'
-    audio_2= 'vaamerda_1.mp3'
-    audio_3='audio_3.mp3'
-    audio_4='audio_4.mp3'
-    audio_5='audio_5.mp3'
+    audio_1= './audios/audio.mp3'
+    audio_2= './audios/vaamerda_1.mp3'
+    audio_3='./audios/audio_3.mp3'
+    audio_4='./audios/audio_4.mp3'
+    audio_5='./audios/audio_5.mp3'
 
     list_Audios= [audio_1, audio_2, audio_3, audio_4, audio_5]
 
@@ -240,19 +242,161 @@ async def mirei(ctx):
 
 
 @bot.command(
-    name="retirar",
+    name="stop",
     aliases=["s"],
     help="It quits the bot from the voice channel"
 ) 
 
-async def retirar(ctx):
+async def stop(ctx):
 
     channel = ctx.message.guild.voice_client
     await channel.disconnect()
 
 
 # await voz.play(source="/Users/ranierymendes/Documents/DiscBot/audio.mpeg")
+
+#MUSIC COMMMAND
+@bot.command(
+    name="play",
+    aliases=["p"],
+    help="O bot irá entrar no canal e tocar a musica selecionada pelo usuário"
+)
+
+
+async def play(ctx):
+    try:
+        channel = ctx.author.voice.channel
+        await channel.connect()
+    except discord.errors.InvalidArgument:
+        await channel.send("O bot ta em outro canal porra! Ta cego?")
+    except Exception as error:
+        await channel.send("Ein Error: ```{error}```".format(error=error))
+
+    try:
+        yt_url = ctx.message.content
+        print(yt_url)
+        #remove the commander sign from the phrase
+        yt_url = yt_url.strip('$p')
+        print(yt_url)
+        channel = ctx.author.voice.channel
+        bot.log_channel = bot.get_channel(670030020621762610)
+       
+        try:
+              ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+              with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                     ydl.download([yt_url])
+                     for file in os.listdir("./"):
+                         if file.endswith(".mp3"):
+                            os.rename(file, 'song.mp3')
+                     channel.play(discord.FFmpegPCMAudio("song.mp3"))
+                     channel.volume = 100
+
+                
+                #player = await channel.create_ytdl_player(yt_url)
+
+                #voice = ctx.message.guild.voice_client
+               
+               # player = await voice.create_ytdl_player('ytsearch: {}'.format(yt_url))
+                
+                #player.start()
+              
+       
+        except Exception as e:
+                 #await bot.log_channel.send("Error: [{error}]".format(error=e))
+                 print(e)
+    except Exception as e:
+          # await bot.log_channel.send("Error: [{error}]".format(error=e))
+           print(e)
+
+@bot.command(
+    name="brtt",
+    aliases=["tt"],
+    help="Lança a braba do BRTT"
+) 
+
+async def brtt(ctx):
+
+    brtt_photo= discord.File('./images/brtt.jpeg')
+    channel = ctx.channel
+
+    await channel.send("REXPEITA", file= brtt_photo)
+
+@bot.command(
+    name="tiaFortinha",
+    aliases=["ff"],
+    help="Lança a braba das Tias Fortinhas"
+) 
+
+async def tiaFortinha(ctx):
+
+    audio = "./audios/jeitoSexy.mp3"
+
+    channel = ctx.author.voice.channel
     
+    player = await channel.connect()    
+
+    #player.play(discord.FFmpegPCMAudio('audio.mp3'))
+    player.play(discord.FFmpegPCMAudio(audio))
+
+    while player.is_playing():
+         time.sleep(5)
+    await player.disconnect()
+
+
+def get_id(n):
+    return n.id
+
+@bot.command(
+    name="teste",
+    aliases=["te"],
+    help="Sera que toca musica?"
+) 
+
+async def teste(ctx, video):
+    YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    channel = ctx.author.voice.channel 
+
+    #store the list with the members online in the voice channel and their data
+    list_users= ctx.author.voice.channel.members 
+    #filters into a list that constains only their ids
+    result= map(get_id, list_users)
+
+    #checks whether the bot is already connected to the voice channel 
+    #if not go ahead and connect to it
+
+    if not 743902306306752522 in result: 
+        
+        player = await channel.connect()
+
+   
+     
+    if player.is_connected():
+
+        if not player.is_playing():
+
+            with YoutubeDL(YDL_OPTIONS) as ydl:
+                info = ydl.extract_info(url=video, download=False)
+            URL = info['formats'][0]['url']
+
+            player.play(discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS), after=lambda  e: print('Chega dessa porra!', e))
+          
+        else:
+            await ctx.channel.send("Ja ta tocando musica, mané!")
+
+    else:
+        await ctx.channel.send("Bot nao quer entrar pra voce! Tenta dps")
+  
+
 #run the bot 
 bot.run(token, bot=True, reconnect=True)
 
+    
