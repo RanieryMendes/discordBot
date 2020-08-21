@@ -259,7 +259,16 @@ async def mirei(ctx):
 async def stop(ctx):
 
     channel = ctx.message.guild.voice_client
-    await channel.disconnect()
+
+    
+    try:
+        if channel.is_connected():
+        
+            await channel.disconnect()
+
+    except AttributeError as e:
+        print(e)
+    
 
 
 # await voz.play(source="/Users/ranierymendes/Documents/DiscBot/audio.mpeg")
@@ -380,23 +389,53 @@ async def play (ctx):
            
 
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=15)
 async def google():
 
-    embed = discord.Embed(
-        title=f"{bot.user.name} tem uma super dica pra você! Betina who??",
-        color= bot.embed_color,
-        timestamp= datetime.datetime.now(datetime.timezone.utc)
-    )
-   
+    randNum = random.randrange(3)
 
-    embed.set_footer(
-        text=bot.footer,
-        icon_url=bot.footer_image
-    )
+    if randNum == 0:
+        embed = discord.Embed(
+            title=f"{bot.user.name} tem uma super dica pra você! Betina who?? So clicar: http://letmegooglethat.com/?q=como+ganhar+dinheiro+rapido",
+            color= bot.embed_color,
+            timestamp= datetime.datetime.now(datetime.timezone.utc)
+        )
+    
 
+        embed.set_footer(
+            text=bot.footer,
+            icon_url=bot.footer_image
+        )
+
+    elif randNum == 1:
+        embed = discord.Embed(
+            title=f" AHHH MAS SE ELEGER O BOLSONARO O DOLAR CAI!! PIPIPOPO! OLHA ESSA MERDA NAS ALTURAS! Vai ver o Mickey na PQP!! Se liga nisso https://economia.uol.com.br/cotacoes/cambio/",
+            color= bot.embed_color,
+            timestamp= datetime.datetime.now(datetime.timezone.utc)
+        )
+    
+
+        embed.set_footer(
+            text=bot.footer,
+            icon_url=bot.footer_image
+        )
+
+    else:
+         embed = discord.Embed(
+            title=f"Vamos desisntalar esse LOL!! Ve se aprende aqui: https://playerlink.gg/network ",
+            color= bot.embed_color,
+            timestamp= datetime.datetime.now(datetime.timezone.utc)
+        )
+    
+
+         embed.set_footer(
+            text=bot.footer,
+            icon_url=bot.footer_image)
+
+
+    #https://playerlink.gg/network
     bot.log_channel = bot.get_channel(670030020621762610)
-    await bot.log_channel.send("http://letmegooglethat.com/?q=como+ganhar+dinheiro+rapido", embed=embed)
+    await bot.log_channel.send( embed=embed)
     print("oi")
     
 
