@@ -11,6 +11,7 @@ from discord.utils import get
 from youtube_dl import YoutubeDL
 from discord.ext import commands, tasks
 from youtube_search import YoutubeSearch 
+import shutil
 
 
 dotenv.load_dotenv()
@@ -259,7 +260,7 @@ async def mirei(ctx):
 async def stop(ctx):
 
     channel = ctx.message.guild.voice_client
-
+    list_songs.clear()
     
     try:
         if channel.is_connected():
@@ -323,15 +324,42 @@ def release_player():
     return tocador
 
 
+list_songs = []
+
 @bot.command(
     name="play",
     aliases=["p"],
     help="Bora rebolar essa raba?!"
 ) 
+
 async def play (ctx):
 
     YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
     FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+
+
+    def check_player():
+        print("Im in check player")
+        
+        
+        
+        print("New length: "+ str(len(list_songs)))
+        list_songs.pop(0)
+        asyncio.sleep
+        print(list_songs)
+        print("New length 2: "+ str(len(list_songs)))
+
+        if len(list_songs) == 0:
+            route = ctx.channel
+            print("Lista ta vazia")
+            
+        else:
+            print("vou tocar essa aqui")
+            print(list_songs[0])
+            time.sleep(2)
+            voice.play(discord.FFmpegPCMAudio(list_songs[0], **FFMPEG_OPTIONS), after=lambda e: check_player())
+
+
     voice = get(bot.voice_clients, guild=ctx.guild)
     channel = ctx.author.voice.channel 
 
@@ -347,17 +375,17 @@ async def play (ctx):
     #checks whether the bot is already connected to the voice channel 
     #if not go ahead and connect to it
 
-    if not 743902306306752522 in new_list: 
+    #if not 743902306306752522 in new_list: 
         
-        player = await channel.connect()
-        if player.is_connected():
-            print("Player ligou")
-            store_player(ctx.author.voice.channel)
+     #   player = await channel.connect()
+      #  if player.is_connected():
+       #     print("Player ligou")
+        #    store_player(ctx.author.voice.channel)
             
 
-    if  743902306306752522 in new_list: 
-        print("Ja ta no channel")
-        player = release_player()
+    #if  743902306306752522 in new_list: 
+    #    print("Ja ta no channel")
+     #   player = release_player()
 
 
     song = ctx.message.content
@@ -379,14 +407,26 @@ async def play (ctx):
     yt_url = 'https://www.youtube.com/watch?v='+yt_id
     print(yt_url)
 
+    if voice.is_playing():
+        print("Ta tocando vou add na fila")
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url=yt_url, download=False)
-    URL = info['formats'][0]['url']
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url=yt_url, download=False)
+        URL = info['formats'][0]['url']
 
-    player.play(discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS), after=lambda  e: print('Chega dessa porra!', e))
+        list_songs.append(URL)
 
-           
+    else:
+        print("Ta tocando")
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url=yt_url, download=False)
+        URL = info['formats'][0]['url']
+
+        list_songs.append(URL)
+        voice.play(discord.FFmpegPCMAudio(list_songs[0], **FFMPEG_OPTIONS), after=lambda  e:check_player())
+
+    
 
 
 @tasks.loop(minutes=15)
@@ -439,6 +479,122 @@ async def google():
     print("oi")
     
 
+@bot.command(pass_context=True, aliases=['j', 'joi'])
+async def join(ctx):
+    global voice
+    channel = ctx.message.author.voice.channel
+    voice = get(bot.voice_clients, guild=ctx.guild)
+
+    if voice and voice.is_connected():
+        await voice.move_to(channel)
+    else:
+        voice = await channel.connect()
+
+    await voice.disconnect()
+
+    if voice and voice.is_connected():
+        await voice.move_to(channel)
+    else:
+        voice = await channel.connect()
+        print(f"The bot has connected to {channel}\n")
+
+    await ctx.send(f"Joined {channel}")
+
+queues = {}
+@bot.command(pass_context=True,name= "koe", aliases=['k'])
+async def koe(ctx, url: str):
+
+    def check_queue():
+        Queue_infile = os.path.isdir("./Queue")
+        if Queue_infile is True:
+            DIR = os.path.abspath(os.path.realpath("Queue"))
+            length = len(os.listdir(DIR))
+            still_q = length - 1
+            try:
+                first_file = os.listdir(DIR)[0]
+            except:
+                print("No more queued song(s)\n")
+                queues.clear()
+                return
+            main_location = os.path.dirname(os.path.realpath(__file__))
+            song_path = os.path.abspath(os.path.realpath("Queue") + "\\" + first_file)
+            if length != 0:
+                print("Song done, playing next queued\n")
+                print(f"Songs still in queue: {still_q}")
+                song_there = os.path.isfile("song.mp3")
+                if song_there:
+                    os.remove("song.mp3")
+                shutil.move(song_path, main_location)
+                for file in os.listdir("./"):
+                    if file.endswith(".mp3"):
+                        os.rename(file, 'song.mp3')
+
+                voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: check_queue())
+                voice.source = discord.PCMVolumeTransformer(voice.source)
+                voice.source.volume = 0.07
+
+            else:
+                queues.clear()
+                return
+
+        else:
+            queues.clear()
+            print("No songs were queued before the ending of the last song\n")
+
+
+
+    song_there = os.path.isfile("song.mp3")
+    try:
+        if song_there:
+            os.remove("song.mp3")
+            queues.clear()
+            print("Removed old song file")
+    except PermissionError:
+        print("Trying to delete song file, but it's being played")
+        await ctx.send("ERROR: Music playing")
+        return
+
+
+    Queue_infile = os.path.isdir("./Queue")
+    try:
+        Queue_folder = "./Queue"
+        if Queue_infile is True:
+            print("Removed old Queue Folder")
+            shutil.rmtree(Queue_folder)
+    except:
+        print("No old Queue folder")
+
+    await ctx.send("Getting everything ready now")
+
+    voice = get(bot.voice_clients, guild=ctx.guild)
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'quiet': True,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        print("Downloading audio now\n")
+        ydl.download([url])
+
+    for file in os.listdir("./"):
+        if file.endswith(".mp3"):
+            name = file
+            print(f"Renamed File: {file}\n")
+            os.rename(file, "song.mp3")
+
+    voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: check_queue())
+    voice.source = discord.PCMVolumeTransformer(voice.source)
+    voice.source.volume = 0.07
+
+    nname = name.rsplit("-", 2)
+    await ctx.send(f"Playing: {nname[0]}")
+    print("playing\n")
 
 
     
