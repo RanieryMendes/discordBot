@@ -13,14 +13,11 @@ from discord.ext import commands, tasks
 from youtube_search import YoutubeSearch 
 import shutil
 
-
-dotenv.load_dotenv()
-
-tocador = 2
 #get Token
+dotenv.load_dotenv()
 token = os.getenv("ACCESS_TOKEN")
 
-
+#initating bot configuration
 bot = commands.Bot(command_prefix="$",
  description="O DJ millionery esta aqui para agitar seu servidor e oferecer experiencias incriveis que so um rei do camarote milionario pode oferecer!", 
 case_insensitive=True)
@@ -51,7 +48,8 @@ async def on_ready():
         icon_url=bot.footer_image
     )
 
-    bot.log_channel = bot.get_channel(670030020621762610)
+    #channel address to where message is going to be sent
+    bot.log_channel = bot.get_channel(670030698308173824)
     await bot.log_channel.send(embed=embed)
     print(f"Message sent on Discord channel. My ID is {bot.user.id}")
     google.start()
@@ -80,11 +78,11 @@ async def on_member_join(member):
     for channel in member.guild.channels:
             await channel.send_message(f"Welcome {member.display_name}")
     
-    bot.log_channel = bot.get_channel(670030020621762610)
+    bot.log_channel = bot.get_channel(670030698308173824)
     await bot.log_channel.send(embed=embed)
  
 
-#COMMAND RESTART 
+#RESTART COMMAND
 @bot.command(
     name="restart",
     aliases=["r"],
@@ -110,11 +108,17 @@ async def restart(ctx):
     )
 
     
-    await bot.log_channel.send(embed=embed)
+    await ctx.channel.send(embed=embed)
 
+    #send a reaction to "register" the restart
     await ctx.message.add_reaction('☑️')
 
+    #disconnect
     await bot.close()
+    
+    await time.sleep(10)
+
+    bot.run(token)
 
 
 #INVITATION COMMAND
@@ -145,18 +149,21 @@ async def invite(ctx):
         icon_url=bot.footer_image
     )
 
-    #create the link 
+    #create the invitation link 
     invitation = await ctx.channel.create_invite(max_uses=1,unique=True,max_age=120)
 
     
-    await bot.log_channel.send(embed=embed, content=invitation)
+    await ctx.channel.send(embed=embed, content=invitation)
 
     await ctx.author.send(invitation)
 
+#ON MESSAGE EVENT
 @bot.event
 async def on_message(message):
 
+#photo that will be sent along with the word explained below
   photoSimp = discord.File("./images/simpson.jpg")
+
 #especial mute for users who type the word "grimes"        
   if message.content.startswith('grimes'):  
         channel = message.channel      
@@ -174,14 +181,15 @@ async def on_voice_state_update(member, before, after):
     #pic to be sent as a welcome gesture
     photoWelcome = discord.File("./images/adri.jpeg")
     
-    name = member.nick #store the new guest's nick
-
-    bot.log_channel = bot.get_channel(670030020621762610) #address of the channel the bot may send the message
+    name =  member.name#store the new guest's nick
+   
+    bot.log_channel = bot.get_channel(670030698308173824) #address of the channel the bot may send the message
+    
     
     #if condition which chekes wheter the user is a new guest or not. NOT = was already on the server
-    if(before.channel == None):
+    if(before.channel == None and member.id != 743902306306752522):
         #send welcome message
-        await bot.log_channel.send("Oi, " + name + ", mama aqui!! GLUB GLUB", file= photoWelcome) 
+        await bot.log_channel.send(f"Oi,  {name}  , mama aqui!! GLUB GLUB", file= photoWelcome) 
 
 
 
@@ -223,7 +231,7 @@ async def ronaldo(ctx):
 @bot.command(
     name="mirei",
     aliases=["m"],
-    help="It plays RanyFollen's famous, controversial phrase"
+    help="Toca um audio maneiro! É random e surpresa ;)"
 ) 
 
 async def mirei(ctx):
@@ -250,17 +258,19 @@ async def mirei(ctx):
     await player.disconnect()
 
 
-
+#STOP Command
 @bot.command(
     name="stop",
     aliases=["s"],
-    help="It quits the bot from the voice channel"
+    help="  Retira o bot do canal de voz! Favor utilizar este comando quando acabar de tocar suas musicas"
 ) 
 
 async def stop(ctx):
 
+    #get the address of the voice channel the bot has to disconnect from
     channel = ctx.message.guild.voice_client
-    list_songs.clear()
+    list_songs.clear() #clear the list of songs to be played 
+    name_songs.clear() #clear the list of songs name to be played 
     
     try:
         if channel.is_connected():
@@ -272,8 +282,6 @@ async def stop(ctx):
     
 
 
-# await voz.play(source="/Users/ranierymendes/Documents/DiscBot/audio.mpeg")
-
 
 #BRTT COMMAND
 @bot.command(
@@ -284,48 +292,46 @@ async def stop(ctx):
 
 async def brtt(ctx):
 
+    #set photo to be sent by the command 
     brtt_photo= discord.File('./images/brtt.jpeg')
+    #get the address of the text channel the message is going to be sent
     channel = ctx.channel
 
     await channel.send("REXPEITA", file= brtt_photo)
 
 @bot.command(
-    name="tiaFortinha",
+    name="tiasfofinhas",
     aliases=["ff"],
-    help="Lança a braba das Tias Fortinhas"
+    help="Lança a braba das Tias Fofinhas"
 ) 
 
-async def tiaFortinha(ctx):
+async def tiasfofinhas(ctx):
 
+
+    #set audio to be played
     audio = "./audios/jeitoSexy.mp3"
 
     channel = ctx.author.voice.channel
     
+    #connect to the voice channel
     player = await channel.connect()    
 
     #player.play(discord.FFmpegPCMAudio('audio.mp3'))
     player.play(discord.FFmpegPCMAudio(audio))
 
+    #prevents the user from quitting the bot before it finishes playing the song
     while player.is_playing():
          time.sleep(5)
+
     await player.disconnect()
 
-def store_player(player):
 
-    tocador = player
-    print(tocador)
-    return
     
 
-def get_id(n):
-    return n.id
 
-def release_player():
-    return tocador
-
-
+#list to store all the songs' url
 list_songs = []
-
+name_songs=[]
 @bot.command(
     name="play",
     aliases=["p"],
@@ -334,60 +340,41 @@ list_songs = []
 
 async def play (ctx):
 
+    #setup for player 
     YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
     FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-
+    #
+    #function that will be used for recursion later
     def check_player():
+
+        #print statements for tracking playlist 
         print("Im in check player")
-        
-        
-        
         print("New length: "+ str(len(list_songs)))
+
+        #delete song that has just played from the list 
         list_songs.pop(0)
-        asyncio.sleep
-        print(list_songs)
+        name_songs.pop(0)
+        
+        #print statement to check list
         print("New length 2: "+ str(len(list_songs)))
 
+        #check if list of songs is zero. If player finishes and length of list_songs is Zero, no songs is played next
         if len(list_songs) == 0:
             route = ctx.channel
-            print("Lista ta vazia")
+            
             
         else:
-            print("vou tocar essa aqui")
-            print(list_songs[0])
+            
             time.sleep(2)
-            voice.play(discord.FFmpegPCMAudio(list_songs[0], **FFMPEG_OPTIONS), after=lambda e: check_player())
+            #play song which is next in the queue
+            voice.play(discord.FFmpegPCMAudio(list_songs[0], **FFMPEG_OPTIONS), after=  lambda  e:  check_player())
 
-
+    #get voice channel info
     voice = get(bot.voice_clients, guild=ctx.guild)
     channel = ctx.author.voice.channel 
 
-
-    #store the list with the members online in the voice channel and their data
-    list_users= ctx.author.voice.channel.members 
-    #filters into a list that constains only their ids
-    new_list = []
-    for n in list_users:
-        new_list.append(get_id(n=n))
-     
-    print(new_list)
-    #checks whether the bot is already connected to the voice channel 
-    #if not go ahead and connect to it
-
-    #if not 743902306306752522 in new_list: 
-        
-     #   player = await channel.connect()
-      #  if player.is_connected():
-       #     print("Player ligou")
-        #    store_player(ctx.author.voice.channel)
-            
-
-    #if  743902306306752522 in new_list: 
-    #    print("Ja ta no channel")
-     #   player = release_player()
-
-
+    #get song name written by the user
     song = ctx.message.content
     song = song[2:]
     print("Playing: " + song)
@@ -401,34 +388,60 @@ async def play (ctx):
             }]
         }
     yt = YoutubeSearch(song, max_results=1).to_json()
-
+ 
     yt_id = str(json.loads(yt)['videos'][0]['id'])
     print("yt id is: " + yt_id)
     yt_url = 'https://www.youtube.com/watch?v='+yt_id
     print(yt_url)
 
-    if voice.is_playing():
-        print("Ta tocando vou add na fila")
+    try:
+        if voice.is_playing():
+            print("Ta tocando vou add na fila")
 
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url=yt_url, download=False)
-        URL = info['formats'][0]['url']
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url=yt_url, download=False)
+            URL = info['formats'][0]['url']
+            a = info['title']
+            name_songs.append(a)
+            b = len(name_songs) - 1
+            
+            await ctx.channel.send(f"{bot.user.name} adicionou {name_songs[b]}. Queue position: {b}")
+            list_songs.append(URL)
+  
+        
+        else:
+            print("Ta tocando")
 
-        list_songs.append(URL)
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url=yt_url, download=False)
+            URL = info['formats'][0]['url']
 
-    else:
-        print("Ta tocando")
+            #get video name
+            a = info['title']
 
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url=yt_url, download=False)
-        URL = info['formats'][0]['url']
+            #add the song's url and name to lists
+            name_songs.append(a)
+            list_songs.append(URL)
 
-        list_songs.append(URL)
-        voice.play(discord.FFmpegPCMAudio(list_songs[0], **FFMPEG_OPTIONS), after=lambda  e:check_player())
+            #inform the channel song which is currently playing
+            await ctx.channel.send(f"{bot.user.name} tá tocando: {name_songs[0]}")
+            voice.play(discord.FFmpegPCMAudio(list_songs[0], **FFMPEG_OPTIONS),  after=lambda  e: check_player())
+    except commands.errors.CommandInvokeError:
+            print("Ta tocando vou add na fila")
 
-    
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url=yt_url, download=False)
+            URL = info['formats'][0]['url']
+            a = info['title']
+            name_songs.append(a)
+            b = len(name_songs) - 1
+            
+            await ctx.channel.send(f"{bot.user.name} adicionou {name_songs[b]}. Queue position: {b}")
+            list_songs.append(URL)
 
+        
 
+#backgound messages to be sent every 15 min
 @tasks.loop(minutes=15)
 async def google():
 
@@ -473,24 +486,21 @@ async def google():
             icon_url=bot.footer_image)
 
 
-    #https://playerlink.gg/network
-    bot.log_channel = bot.get_channel(670030020621762610)
+    #
+    bot.log_channel = bot.get_channel(670030698308173824)
     await bot.log_channel.send( embed=embed)
-    print("oi")
+    print("Background loop just sent a message")
     
 
+#JOIN COMMAND
 @bot.command(pass_context=True, aliases=['j', 'joi'])
 async def join(ctx):
+    #getting in the voice channel and connect to it, so users can play songs
     global voice
     channel = ctx.message.author.voice.channel
     voice = get(bot.voice_clients, guild=ctx.guild)
 
-    if voice and voice.is_connected():
-        await voice.move_to(channel)
-    else:
-        voice = await channel.connect()
-
-    await voice.disconnect()
+    #check if bot is connected to another voice channel
 
     if voice and voice.is_connected():
         await voice.move_to(channel)
@@ -500,106 +510,9 @@ async def join(ctx):
 
     await ctx.send(f"Joined {channel}")
 
-queues = {}
-@bot.command(pass_context=True,name= "koe", aliases=['k'])
-async def koe(ctx, url: str):
-
-    def check_queue():
-        Queue_infile = os.path.isdir("./Queue")
-        if Queue_infile is True:
-            DIR = os.path.abspath(os.path.realpath("Queue"))
-            length = len(os.listdir(DIR))
-            still_q = length - 1
-            try:
-                first_file = os.listdir(DIR)[0]
-            except:
-                print("No more queued song(s)\n")
-                queues.clear()
-                return
-            main_location = os.path.dirname(os.path.realpath(__file__))
-            song_path = os.path.abspath(os.path.realpath("Queue") + "\\" + first_file)
-            if length != 0:
-                print("Song done, playing next queued\n")
-                print(f"Songs still in queue: {still_q}")
-                song_there = os.path.isfile("song.mp3")
-                if song_there:
-                    os.remove("song.mp3")
-                shutil.move(song_path, main_location)
-                for file in os.listdir("./"):
-                    if file.endswith(".mp3"):
-                        os.rename(file, 'song.mp3')
-
-                voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: check_queue())
-                voice.source = discord.PCMVolumeTransformer(voice.source)
-                voice.source.volume = 0.07
-
-            else:
-                queues.clear()
-                return
-
-        else:
-            queues.clear()
-            print("No songs were queued before the ending of the last song\n")
-
-
-
-    song_there = os.path.isfile("song.mp3")
-    try:
-        if song_there:
-            os.remove("song.mp3")
-            queues.clear()
-            print("Removed old song file")
-    except PermissionError:
-        print("Trying to delete song file, but it's being played")
-        await ctx.send("ERROR: Music playing")
-        return
-
-
-    Queue_infile = os.path.isdir("./Queue")
-    try:
-        Queue_folder = "./Queue"
-        if Queue_infile is True:
-            print("Removed old Queue Folder")
-            shutil.rmtree(Queue_folder)
-    except:
-        print("No old Queue folder")
-
-    await ctx.send("Getting everything ready now")
-
-    voice = get(bot.voice_clients, guild=ctx.guild)
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'quiet': True,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
-
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        print("Downloading audio now\n")
-        ydl.download([url])
-
-    for file in os.listdir("./"):
-        if file.endswith(".mp3"):
-            name = file
-            print(f"Renamed File: {file}\n")
-            os.rename(file, "song.mp3")
-
-    voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: check_queue())
-    voice.source = discord.PCMVolumeTransformer(voice.source)
-    voice.source.volume = 0.07
-
-    nname = name.rsplit("-", 2)
-    await ctx.send(f"Playing: {nname[0]}")
-    print("playing\n")
-
 
     
 #run the bot 
-
 bot.run(token, bot=True, reconnect=True)
 
 
