@@ -53,6 +53,9 @@ async def on_ready():
     await bot.log_channel.send(embed=embed)
     print(f"Message sent on Discord channel. My ID is {bot.user.id}")
     google.start()
+
+    a = 20
+    print(a)
    
     
 #new comment
