@@ -55,7 +55,7 @@ async def on_ready():
     google.start()
    
     
-
+#new comment
 
 
 #MESSAGE FOR FIRST TIME JOINING THE SERVER
